@@ -15,23 +15,22 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .anyRequest()
-                    .authenticated()
+                .anyRequest()
+                .authenticated()
                 .and()
                 .oauth2Login()
-                    .userInfoEndpoint()
-                        .oidcUserService(new OAuth2UserService<OidcUserRequest, OidcUser>() {
-                            @Override
-                            public OidcUser loadUser(OidcUserRequest oidcUserRequest) throws OAuth2AuthenticationException {
-                                OidcUserService oidcUserService =new OidcUserService();
-                                OidcUser oidcUser = oidcUserService.loadUser(oidcUserRequest);
-                                //System.out.println(oidcUserRequest.getAccessToken().getTokenValue());
-                                //hook to build cutsom user
-                                return oidcUser;
-                            }
-                        }).and()
+                .userInfoEndpoint()
+                .oidcUserService(oidcUserService()).and()
                 .and()
                 .oauth2ResourceServer()
-                    .jwt();
+                .jwt();
+    }
+
+    private OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {
+        return oidcUserRequest -> {
+            OidcUserService oidcUserService = new OidcUserService();
+            OidcUser oidcUser = oidcUserService.loadUser(oidcUserRequest);
+            return oidcUser;
+        };
     }
 }
